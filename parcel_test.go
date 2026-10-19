@@ -91,7 +91,7 @@ func TestSetAddress(t *testing.T) {
 	// получите добавленную посылку и убедитесь, что адрес обновился
 	result, err := store.Get(id)
 	require.NoError(t, err)
-	require.NoEqual(t, newAddress, result.Address)
+	require.Equal(t, newAddress, result.Address)
 }
 
 // TestSetStatus проверяет обновление статуса
@@ -168,7 +168,7 @@ func TestGetByClient(t *testing.T) {
 		// в parcelMap лежат добавленные посылки, ключ - идентификатор посылки, значение - сама посылка
 		dataParcel, check := parcelMap[parcel.Number]
 		require.True(t, check, "find new values")
-		require.ElementsMatch(t, dataParcel, parcel)
+		require.Equal(t, dataParcel, parcel)
 		// убедитесь, что все посылки из storedParcels есть в parcelMap
 		// убедитесь, что значения полей полученных посылок заполнены верно
 	}
