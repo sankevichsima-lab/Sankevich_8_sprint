@@ -22,12 +22,12 @@ func (s ParcelStore) Add(p Parcel) (int, error) {
 		sql.Named("createdAd", p.CreatedAt))
 
 	if err != nil {
-		return 0, fmt.Errorf("problem with add data: %v", err)
+		return 0, fmt.Errorf("problem with add data: %w", err)
 	}
 
 	id, err := res.LastInsertId()
 	if err != nil {
-		return 0, fmt.Errorf("problem with getting ID: %v", err)
+		return 0, fmt.Errorf("problem with getting ID: %w", err)
 	}
 	// верните идентификатор последней добавленной записи
 	return int(id), nil
@@ -44,7 +44,7 @@ func (s ParcelStore) Get(number int) (Parcel, error) {
 	row := s.db.QueryRow("SELECT client, status, address, created_at FROM parcel WHERE number = :number", sql.Named("number", number))
 	err := row.Scan(&p.Client, &p.Status, &p.Address, &p.CreatedAt)
 	if err != nil {
-		return Parcel{}, fmt.Errorf("problem with scan row: %v", err)
+		return Parcel{}, fmt.Errorf("problem with scan row: %w", err)
 	}
 
 	return p, nil
@@ -60,7 +60,7 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 	rows, err := s.db.Query("SELECT number, client, status, address, created_at FROM parcel WHERE client = :client",
 		sql.Named("client", client))
 	if err != nil {
-		return nil, fmt.Errorf("problem with query: %v", err)
+		return nil, fmt.Errorf("problem with query: %w", err)
 	}
 	defer rows.Close()
 
@@ -68,12 +68,12 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 		p := Parcel{}
 		err := rows.Scan(&p.Number, &p.Client, &p.Status, &p.Address, &p.CreatedAt)
 		if err != nil {
-			return nil, fmt.Errorf("problem with scan rows: %v", err)
+			return nil, fmt.Errorf("problem with scan rows: %w", err)
 		}
 		res = append(res, p)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("%v", err)
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return res, nil
@@ -81,6 +81,13 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 
 func (s ParcelStore) SetStatus(number int, status string) error {
 	// реализуйте обновление статуса в таблице parcel
+	_, err := s.db.Exec("UPDATE parcel SET status = :status WHERE number = :number",
+		sql.Named("status", status),
+		sql.Named("number", number))
+
+	if err != nil {
+		return fmt.Errorf("problem with update status: %w", err)
+	}
 
 	return nil
 }
