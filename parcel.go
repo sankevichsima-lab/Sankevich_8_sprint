@@ -39,6 +39,13 @@ func (s ParcelStore) Get(number int) (Parcel, error) {
 
 	// заполните объект Parcel данными из таблицы
 	p := Parcel{}
+	p.Number = number
+
+	row := s.db.QueryRow("SELECT client, status, address, created_at FROM parcel WHERE number = :number", sql.Named("number", number))
+	err := row.Scan(&p.Client, &p.Status, &p.Address, &p.CreatedAt)
+	if err != nil {
+		return Parcel{}, err
+	}
 
 	return p, nil
 }
