@@ -44,7 +44,7 @@ func (s ParcelStore) Get(number int) (Parcel, error) {
 	row := s.db.QueryRow("SELECT client, status, address, created_at FROM parcel WHERE number = :number", sql.Named("number", number))
 	err := row.Scan(&p.Client, &p.Status, &p.Address, &p.CreatedAt)
 	if err != nil {
-		return Parcel{}, err
+		return Parcel{}, fmt.Errorf("problem with scan row: %v", err)
 	}
 
 	return p, nil
@@ -56,6 +56,25 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 
 	// заполните срез Parcel данными из таблицы
 	var res []Parcel
+
+	rows, err := s.db.Query("SELECT number, client, status, address, created_at FROM parcel WHERE client = :client",
+		sql.Named("client", client))
+	if err != nil {
+		return nil, fmt.Errorf("problem with query: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		p := Parcel{}
+		err := rows.Scan(&p.Number, &p.Client, &p.Status, &p.Address, &p.CreatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("problem with scan rows: %v", err)
+		}
+		res = append(res, p)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%v", err)
+	}
 
 	return res, nil
 }
